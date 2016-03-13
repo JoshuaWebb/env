@@ -1,0 +1,71 @@
+# git checkout force 
+# - checkout the most recent version of a remote branch
+#   discarding all changes to the working directory.
+#   and discarding all commits
+gcof()
+{  
+  if [ $# -eq 0 ]
+   then
+      echo "No commit/branch supplied... what am I supposed to checkout?";
+      return 1
+   fi
+
+   remote="origin" # hardcoded to origin right now: TODO: take a -r flag
+   branch=$1;
+
+   echo "fetching remote" &&
+   git fetch $remote &&
+   
+   echo "" &&
+   gbe $remote/$branch &&
+   
+   echo "" &&
+   gnuke &&
+   
+   echo "" &&
+   git checkout $branch &&
+   
+   local stat=$(git status -sb | head -1) &&
+   local aheadBy=$(echo $stat | sed -nr 's/.*(\[ahead ([0-9]+).*\])$/\2/p') &&
+
+   if [[ $aheadBy -ne "" ]];
+   then   
+      echo ""
+ 
+      # use the handler if and only if it exists, and it applies
+      command -v gcofHandler > /dev/null 2>&1 &&
+      command -v gcofHandlerApplies > /dev/null 2>&1 &&
+      command -v gcofHandlerApplies $aheadBy $remote $branch &&
+      local useHandler=1
+
+      if [[ $useHandler ]];
+      then
+          gcofHandler $aheadBy $remote $branch;
+          return $?;
+      fi
+
+      # Otherwise, no special handler
+      local prompt
+      [[ $aheadBy -eq 1 ]] && 
+         prompt="You have an un-pushed commit, do you want to kill it? " ||
+         prompt="You have $aheadBy un-pushed commits, do you want to blast them away? ";
+      
+      local RESPONSE=""
+      while [[ "$RESPONSE" = "" ]];
+      do
+         echo -n "$prompt" &&
+         read RESPONSE
+      done
+      
+      echo "" &&
+      if yslashn "$RESPONSE"; then
+        echo "Bye bye changes!"
+      else
+        echo "Left'm there.";
+        return 0
+      fi
+   fi
+   
+   echo "" &&
+   git reset --hard $remote/$branch
+}

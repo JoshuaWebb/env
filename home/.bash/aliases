@@ -1,0 +1,29 @@
+# re-source all the files again (for when you change an alias etc.)
+# NOTE: this won't remove aliases that no longer exist, but it will overwrite.
+alias rsbash=". ~/.bashrc"
+
+# always colour ls
+alias ls="ls --color"
+
+# ruby with terminal fix
+alias irb="irb --noreadline"
+
+# run a fake smtp server in the command line, spitting out the results to stdout
+# (point SmtpClients at 127.0.0.1).
+alias fsmtp="python -m smtpd -c DebuggingServer -n localhost:25"
+
+# windows versions mapped to bash
+alias cls="clear"
+alias dir="ls"
+
+# I clear a lot after 'q'ing out of git diff'ing and then scrolling up... so I
+# end up hitting q more than once, and then typing cls...
+alias qcls="clear"
+alias qqcls="clear"
+alias qqcls="clear"
+alias qqqcls="clear"
+alias qqqqcls="clear"
+
+# source the local aliases if there are any
+# These will take precedence over anything defined above
+[ -f "$HOME/.local_aliases" ] && source "$HOME/.local_aliases"

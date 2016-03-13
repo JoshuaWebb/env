@@ -1,0 +1,109 @@
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+# using regular git branch prompt makes this prompt really slow.
+source "$SCRIPT_DIR/gitbranchfast"
+
+# Default function does nothing
+# $1 = the root path of the repo
+# Output how you want the repo to be displayed in the prompt
+# If you don't want a special output, don't output anything.
+specialRepo()
+{
+   : # default behaviour is to not do anything.
+   
+   # example:
+   # case "$1" in
+   # "/c/exmaple")              echo "${Orange}Example"  ;;
+   # "/c/some/other/example/")  echo "${Pink}Example2"   ;;
+   # esac
+}
+
+# source the file overriding the function if it exists
+[ -f "$SCRIPT_DIR/repositories" ] && source "$SCRIPT_DIR/repositories"
+
+# Various variables you might want for your PS1 prompt instead
+Time12h="\T"
+Time12a="\@"
+PathShort="\w"
+PathFull="\W"
+NewLine="\n"
+Jobs="\j"
+
+prompt_cmd()
+{
+   PS1="${DarkGrey}$Time12h$Color_Off "
+   gitbranchfast
+   # if in a git repo, show the path and the branch (highlight the root repo directory)
+   if [[ ! -z ${GITBRANCH} ]]; then
+     
+     # Only do all this stuff if the directory has changed
+     if [[ "$PWD" != "$CACHED_COLOURED_PATH" ]]; then    
+        # @ Example current dir: C:/git/Repo/dir/sub (/c/git/Repo/dir/sub)
+        # get the root repo path (remove colons)
+        # @ C:/git/Repo -> C/git/Repo
+        gitpath=$(git rev-parse --show-toplevel | sed "s/://")
+        
+        # Get the parent directory of the root repo path
+        # @ C/git/Repo/dir/sub -> C/git
+        justParentPath=${gitpath%/*};
+
+        # Get the parent path as it appears via 'pwd' for consistency
+        # (+ 2 for the leading+trailing slashes)
+        # @ C/git -> /c/git/
+        if [[ "${justParentPath:0:1}" = "/" ]];
+        then
+           properParentPath=$justParentPath
+           # make sure it ends in a trailing slash
+           if [[ "${justParentPath:$((${#justParentPath}-1)):1}" != "/" ]]
+           then
+             properParentPath="$properParentPath/"
+           fi
+        else
+           properParentPath=${PWD:0:(${#justParentPath} + 2)};
+        fi
+
+        # Get the inverse of the parent path
+        # @ /c/git/Repo/dir/sub -> Repo/dir/sub
+        repoAndTrailing=${PWD:(${#properParentPath})};
+        
+        # Split it up into the repo and trailing parts
+        # @ Repo/dir/sub -> Repo
+        justRepo=${repoAndTrailing%%/*};
+        # @ Repo/dir/sub -> dir/sub
+        justTrailing=${repoAndTrailing#*/};
+
+        # if there is no subdirectory (i.e. we are in the root repo path)
+        # then repo, trailing, and repoAndtrailing will all be equal.
+        # here we clear the trailing if there is none, or prefix the
+        # slash that got chopped off while trimming.
+        if [[ ${#justTrailing} == ${#repoAndTrailing} ]]; then
+           justTrailing=""
+        else
+           justTrailing="/$justTrailing"
+        fi
+
+        local colourRepo=$(specialRepo "${properParentPath}${justRepo}");
+
+        # if no special case
+        if [[ -z ${colourRepo} ]]; then
+           colourRepo=${Color_Off}${properParentPath}${Pink}${justRepo}
+        fi
+
+        colouredPath=${colourRepo}${Color_Off}${justTrailing}
+
+        export COLOURED_PATH=$colouredPath
+     fi
+     
+     export CACHED_COLOURED_PATH=$(pwd)
+     # finally we add the branch '__git_ps1' wrapped in curly braces (all blue)
+     # and finish with an uncoloured "$ "
+     PS1+="${BBlue}{${GITBRANCH}} ${COLOURED_PATH}${Color_Off}\$ "
+     
+   # if not in a git repo, just the path
+   else
+     PS1+="${Purple}$PathShort${Color_Off}\$ ";
+   fi
+}
+
+# PROMPT_COMMAND gets executed before every prompt.
+export PROMPT_COMMAND=prompt_cmd

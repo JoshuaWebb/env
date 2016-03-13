@@ -1,0 +1,30 @@
+#!/bin/bash
+
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+outputDir=~/
+
+# todo: check if exists first...
+# handle gracefully?
+
+# copy 'bin' to 'outputDir/bin'
+cp -r $SCRIPT_DIR/bin "$outputDir"
+
+# copy contents of 'home' to 'outputDir/'
+cp -r $SCRIPT_DIR/home/. "$outputDir"
+
+# Setup gitconfig
+default="Joshua Webb"
+RESPONSE=""
+echo -n "git username <$default>: " &&
+read RESPONSE
+if [[ "$RESPONSE" = "" ]]; then RESPONSE="$default"; fi
+
+git config --global user.name "$RESPONSE"
+
+default="bbew.auhsoj+git@gmail.com"
+RESPONSE=""
+echo -n "git email <$default>: " &&
+read RESPONSE
+if [[ "$RESPONSE" = "" ]]; then RESPONSE="$default"; fi
+
+git config --global user.email "$RESPONSE"

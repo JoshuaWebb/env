@@ -1,0 +1,48 @@
+# modified version of: https://gist.github.com/wolever/6525437
+function gitbranchfast()
+{
+   export GITBRANCH=""
+
+   local repo="${_GITBRANCH_LAST_REPO-}"
+   local gitdir=""
+   [[ ! -z "$repo" ]] && gitdir="$repo/.git"
+   
+   # If we don't have a last seen git repo, or we are in a different directory
+   if [[ -z "$repo" || "$PWD" != "$repo"* || ! -e "$gitdir" ]]; then
+       local cur="$PWD"
+       while [[ ! -z "$cur" ]]; do
+           if [[ -e "$cur/.git" ]]; then
+               repo="$cur"
+               gitdir="$cur/.git"
+               break
+           else
+               gitdir=""
+           fi
+           cur="${cur%/*}"
+       done
+   fi
+
+   if [[ -z "$gitdir" ]]; then
+       unset _GITBRANCH_LAST_REPO
+       return 0
+   fi
+   export _GITBRANCH_LAST_REPO="${repo}"
+   local head=""
+   local branch=""
+   read head < "$gitdir/HEAD"
+   case "$head" in
+       ref:*)
+           branch="${head##*/}"
+           ;;
+       "")
+           branch=""
+           ;;
+       *)
+           branch="d:${head:0:7}"
+           ;;
+   esac
+   if [[ -z "$branch" ]]; then
+       return 0
+   fi
+   export GITBRANCH="$branch"
+}

@@ -1,0 +1,64 @@
+alias gs="git status"
+alias gdc="git diff --cached"
+alias gl="git log"
+alias gsearch="git log --all -S"
+alias gfa="git fetch --all"
+alias gtld="git rev-parse --show-toplevel"
+
+# delete local
+alias gdell="git branch -d"
+
+# delete origin (remote)
+gdelo()
+{   
+   git push origin :$@
+}
+
+# Git stash show
+gss() 
+{ 
+   if [ $# -eq 0 ]
+   then
+      stashNum="0"
+   else
+      stashNum="$@"
+   fi
+   
+   git stash show -p stash@{"$stashNum"}; 
+}
+
+# Git diff including untracked files
+gd() 
+{ 
+   # Group output for piping together
+   { 
+      # Do regular diff without paging so it can be paged together with the
+      # untracked files. colour explicitly so that the pager can colour it
+      # properly. Send stderr to stdout so that everything gets paged.
+      git --no-pager diff --color "$@" 2>&1;
+      
+      # Only diff untracked if there was no argument supplied... this isn't the
+      # best, ideally we'd support at least some of the arguments properly, but
+      # for now this is an acceptable compromise
+      if [ $# -eq 0 ]
+      then
+         diffuntracked;
+      fi
+   # -F quit automatically if it fits on one page
+   # -X don't clear terminal on quit
+   # -R process colours
+   } | less -FXR; 
+}
+
+# git branch exists
+gbe()
+{
+   if git rev-parse --verify $@ &> /dev/null;
+   then
+      echo "'$@' was found."
+      return 0
+   else
+      echo "'$@' could not be found"
+      return 1
+   fi
+}
