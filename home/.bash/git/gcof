@@ -32,17 +32,18 @@ gcof()
    then   
       echo ""
  
+      # TODO: this should probably come from the repo itself
+      #       not one single handler. Probably shove it in the
+      #       .git/hooks folder
       # use the handler if and only if it exists, and it applies
+      local useHandler;
       command -v gcofHandler > /dev/null 2>&1 &&
       command -v gcofHandlerApplies > /dev/null 2>&1 &&
-      command -v gcofHandlerApplies $aheadBy $remote $branch &&
-      local useHandler=1
-
-      if [[ $useHandler ]];
-      then
+      gcofHandlerApplies $aheadBy $remote $branch &&
+      {
           gcofHandler $aheadBy $remote $branch;
           return $?;
-      fi
+      }
 
       # Otherwise, no special handler
       local prompt
