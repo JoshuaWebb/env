@@ -31,21 +31,35 @@ gcof()
    if [[ $aheadBy -ne "" ]];
    then   
       echo ""
- 
-      # TODO: this should probably come from the repo itself
-      #       not one single handler. Probably shove it in the
-      #       .git/hooks folder
-      # use the handler if and only if it exists, and it applies
-      local useHandler;
-      command -v gcofHandler > /dev/null 2>&1 &&
-      command -v gcofHandlerApplies > /dev/null 2>&1 &&
-      gcofHandlerApplies $aheadBy $remote $branch &&
+
+      # local handler
+      tld="$(gtld)";
+      handler="$tld/.git/hooks/gcof-handler";
+      handlerApplies="$tld/.git/hooks/gcof-handler-applies";
+
+      [[ -e $handler ]] && [[ -e $handlerApplies ]] &&
+      "$handlerApplies" $aheadBy "$remote" "$branch" &&
       {
-          gcofHandler $aheadBy $remote $branch;
+          "$handler" $aheadBy "$remote" "$branch";
           return $?;
       }
 
-      # Otherwise, no special handler
+      # global handler
+      {
+         # delete cached paths in case they no longer exist
+         hash -d gcof-handler
+         hash -d gcof-handler-applies
+         command -v gcof-handler &&
+         command -v gcof-handler-applies
+      # silence output from checks
+      } > /dev/null 2>&1 &&
+      gcof-handler-applies $aheadBy "$remote" "$branch" &&
+      {
+          gcof-handler $aheadBy "$remote" "$branch";
+          return $?;
+      }
+
+      # Otherwise no handler
       local prompt
       [[ $aheadBy -eq 1 ]] && 
          prompt="You have an un-pushed commit, do you want to kill it? " ||
