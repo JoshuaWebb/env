@@ -31,7 +31,7 @@ Jobs="\j"
 
 prompt_cmd()
 {
-   PS1="${DarkGrey}$Time12h$Color_Off "
+   PS1="${PDarkGrey}$Time12h${PColor_Off} "
    gitbranchfast
    # if in a git repo, show the path and the branch (highlight the root repo directory)
    if [[ ! -z ${GITBRANCH} ]]; then
@@ -86,10 +86,10 @@ prompt_cmd()
 
         # if no special case
         if [[ -z ${colourRepo} ]]; then
-           colourRepo=${Color_Off}${properParentPath}${Pink}${justRepo}
+           colourRepo=${PColor_Off}${properParentPath}${PPink}${justRepo}
         fi
 
-        colouredPath=${colourRepo}${Color_Off}${justTrailing}
+        colouredPath=${colourRepo}${PColor_Off}${justTrailing}
 
         export COLOURED_PATH=$colouredPath
      fi
@@ -97,11 +97,11 @@ prompt_cmd()
      export CACHED_COLOURED_PATH=$(pwd)
      # finally we add the branch '__git_ps1' wrapped in curly braces (all blue)
      # and finish with an uncoloured "$ "
-     PS1+="${BBlue}{${GITBRANCH}} ${COLOURED_PATH}${Color_Off}\$ "
+     PS1+="${PBBlue}{${GITBRANCH}} ${COLOURED_PATH}${PColor_Off}\$ "
      
    # if not in a git repo, just the path
    else
-     PS1+="${Purple}$PathShort${Color_Off}\$ ";
+     PS1+="${PPurple}$PathShort${PColor_Off}\$ ";
    fi
 }
 
