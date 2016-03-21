@@ -97,7 +97,7 @@ prompt_cmd()
      export CACHED_COLOURED_PATH=$(pwd)
      # finally we add the branch '__git_ps1' wrapped in curly braces (all blue)
      # and finish with an uncoloured "$ "
-     PS1+="${PBBlue}{${GITBRANCH}} ${COLOURED_PATH}${PColor_Off}\$ "
+     PS1+="${PBBlue}$(__git_ps1 "{%s}") ${COLOURED_PATH}${PColor_Off}\$ "
      
    # if not in a git repo, just the path
    else
