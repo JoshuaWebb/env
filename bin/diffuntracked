@@ -21,7 +21,7 @@ my $GREYonRED = "\e[0;37;41m";
 # End Colour
 my $EC = "\e[m";
 
-my @filenames = `git status --porcelain | grep "??" | sed "s/?? //"`;
+my @filenames = grep(s/\?\? //, `git status --porcelain`);
 
 recursivelyDiffFiles(@filenames);
 
@@ -73,7 +73,7 @@ sub recursivelyDiffFiles {
       # Emulate diff header text
       my $mimeEncoding = `file -b --mime-encoding $filename`;
       chomp $mimeEncoding;
-      if ($mimeEncoding eq 'binary') {
+      if ($mimeEncoding =~ '^binary\s*$') {
          my $mode = (stat $filename)[2];
          print  "${EC}${fgWHITE}diff --git a/$filename b/$filename\n";
          printf "${fgWHITE}new file mode %o\n", $mode;
