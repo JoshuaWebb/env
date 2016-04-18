@@ -49,7 +49,7 @@ sub recursivelyDiffFiles {
             next FILE;
          }
          
-         recursivelyDiffFiles(glob("$filename/*"));
+         recursivelyDiffFiles(glob("'$filename'/*"));
          
          next FILE;
       }
