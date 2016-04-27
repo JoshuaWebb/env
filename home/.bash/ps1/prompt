@@ -41,7 +41,7 @@ prompt_cmd()
         # @ Example current dir: C:/git/Repo/dir/sub (/c/git/Repo/dir/sub)
         # get the root repo path (remove colons)
         # @ C:/git/Repo -> C/git/Repo
-        gitpath=$(git rev-parse --show-toplevel | sed "s/://")
+        gitpath=$(cd "$(git rev-parse --show-cdup)" && pwd | sed "s/://")
         
         # Get the parent directory of the root repo path
         # @ C/git/Repo/dir/sub -> C/git
@@ -82,19 +82,20 @@ prompt_cmd()
            justTrailing="/$justTrailing"
         fi
 
+        properParentPath=${properParentPath/$HOME"/"/"~/"}
         local colourRepo=$(specialRepo "${properParentPath}${justRepo}");
 
         # if no special case
         if [[ -z ${colourRepo} ]]; then
-           colourRepo=${PColor_Off}${properParentPath}${PPink}${justRepo}
+           colourRepo=${properParentPath}${PPink}${justRepo}
         fi
 
-        colouredPath=${colourRepo}${PColor_Off}${justTrailing}
+        colouredPath=${PColor_Off}${colourRepo}${PColor_Off}${justTrailing}
 
         export COLOURED_PATH=$colouredPath
      fi
      
-     export CACHED_COLOURED_PATH=$(pwd)
+     export CACHED_COLOURED_PATH=$PWD
      # finally we add the branch '__git_ps1' wrapped in curly braces (all blue)
      # and finish with an uncoloured "$ "
      PS1+="${PBBlue}$(__git_ps1 "{%s}") ${COLOURED_PATH}${PColor_Off}\$ "
