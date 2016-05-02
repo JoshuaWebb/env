@@ -32,57 +32,27 @@ Jobs="\j"
 prompt_cmd()
 {
    PS1="${PDarkGrey}$Time12h${PColor_Off} "
+   # setup GITBRANCH environment variable
    gitbranchfast
    # if in a git repo, show the path and the branch (highlight the root repo directory)
    if [[ ! -z ${GITBRANCH} ]]; then
-     
      # Only do all this stuff if the directory has changed
      if [[ "$PWD" != "$CACHED_COLOURED_PATH" ]]; then    
-        # @ Example current dir: C:/git/Repo/dir/sub (/c/git/Repo/dir/sub)
-        # get the root repo path (remove colons)
-        # @ C:/git/Repo -> C/git/Repo
-        gitpath=$(cd "$(git rev-parse --show-cdup)" && pwd | sed "s/://")
-        
-        # Get the parent directory of the root repo path
-        # @ C/git/Repo/dir/sub -> C/git
-        justParentPath=${gitpath%/*};
+        prefix=$(git rev-parse --show-prefix)
+        prefix=${prefix:-.} # need at least one character to chop
+        # we want a leading '/' (but not the trailing slash from "show-prefix")
+        # after we cut up $PWD we'll fix $justTrailing if this makes it '/'
+        justTrailing="/"${prefix:0:-1}
+        parentAndRepo=${PWD%%$justTrailing}
+        justRepo=${parentAndRepo##*/}
+        properParentPath=${parentAndRepo%%$justRepo}
 
-        # Get the parent path as it appears via 'pwd' for consistency
-        # (+ 2 for the leading+trailing slashes)
-        # @ C/git -> /c/git/
-        if [[ "${justParentPath:0:1}" = "/" ]];
-        then
-           properParentPath=$justParentPath
-           # make sure it ends in a trailing slash
-           if [[ "${justParentPath:$((${#justParentPath}-1)):1}" != "/" ]]
-           then
-             properParentPath="$properParentPath/"
-           fi
-        else
-           properParentPath=${PWD:0:(${#justParentPath} + 2)};
-        fi
-
-        # Get the inverse of the parent path
-        # @ /c/git/Repo/dir/sub -> Repo/dir/sub
-        repoAndTrailing=${PWD:(${#properParentPath})};
-        
-        # Split it up into the repo and trailing parts
-        # @ Repo/dir/sub -> Repo
-        justRepo=${repoAndTrailing%%/*};
-        # @ Repo/dir/sub -> dir/sub
-        justTrailing=${repoAndTrailing#*/};
-
-        # if there is no subdirectory (i.e. we are in the root repo path)
-        # then repo, trailing, and repoAndtrailing will all be equal.
-        # here we clear the trailing if there is none, or prefix the
-        # slash that got chopped off while trimming.
-        if [[ ${#justTrailing} == ${#repoAndTrailing} ]]; then
-           justTrailing=""
-        else
-           justTrailing="/$justTrailing"
-        fi
+        # remove the leading '/' if it is the only char, otherwise grab everything.
+        justTrailing=${justTrailing%%/}
 
         properParentPath=${properParentPath/$HOME"/"/"~/"}
+
+        # custom presentation logic for root path
         local colourRepo=$(specialRepo "${properParentPath}${justRepo}");
 
         # if no special case
