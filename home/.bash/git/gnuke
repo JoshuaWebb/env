@@ -19,7 +19,7 @@ gnuke()
    do
       select yn in "yes" "status" "diff" "stash em" "no" ; do
          case $yn in
-            yes ) git reset --hard && git clean -f; selection=1; break;;
+            yes ) git reset --hard && git clean -df; selection=1; break;;
             status ) gs; break;;
             diff ) gd; break;;
             'stash em' ) git stash -u; selection=1; break;;
