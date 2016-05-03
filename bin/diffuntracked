@@ -3,25 +3,11 @@
 use warnings;
 use strict;
 
-my $highlightCarraigeReturns = 0;
-
 #fg = foreground
-my $fgWHITE = "\e[1;39m";
-my $fgGREEN = "\e[0;32m";
 my $fgTEAL = "\e[0;36m";
 my $fgDARKGREY = "\e[1;30;40m";
 
-#fbg = (foreground + background)
-my $fbgRED = "\e[0;31;41m";
-   
-# foreground on background
-my $REDonGREY = "\e[0;31;47m";
-my $GREYonRED = "\e[0;37;41m";
-
-# End Colour
-my $EC = "\e[m";
-
-my @filenames = grep(s/\?\? //, `git status --porcelain`);
+my @filenames = `git ls-files --others`;
 
 recursivelyDiffFiles(@filenames);
 
@@ -34,7 +20,7 @@ sub recursivelyDiffFiles {
       #     checking if a directory is ignored (no slash)
       # and checking if a directory contains a file that is (with slash)
       #
-      # we only want to ignore a directory if it is explictly ignored,
+      # we only want to ignore a directory if it is explicitly ignored,
       # files in directories will be checked individually, this is so we don't
       # skip whole directories just because they contain one thing that should 
       # be ignored.
@@ -60,76 +46,12 @@ sub recursivelyDiffFiles {
          next FILE;
       }
 
-      # Get sha1 for legit diff styles
-      my $sha1 = `git hash-object "$filename" | cut -c1-7`;
-      chomp $sha1;
+      print `git diff --color=always --no-index -- /dev/null "$filename"`;
       
-      # Read the lines for later processing (and to get the line count), not the
-      # most efficient, reading everything into memory at once, but it is easy!
-      open(my $fh,"<", $filename);
-      my $lines = do { local $/; <$fh>; };
-      close($fh);
-      
-      # Emulate diff header text
       my $mimeEncoding = `file -b --mime-encoding $filename`;
       chomp $mimeEncoding;
       if ($mimeEncoding =~ '^binary\s*$') {
-         my $mode = (stat $filename)[2];
-         print  "${EC}${fgWHITE}diff --git a/$filename b/$filename\n";
-         printf "${fgWHITE}new file mode %o\n", $mode;
-         print  "${fgWHITE}index 0000000..$sha1\n";
-         print  "Binary files /dev/null and b/$filename differ\n";
          print  "${fgTEAL}*** NEW BINARY FILE ***\n";
-         next FILE;
       }
-      
-      print "${EC}${fgWHITE}diff --git a/$filename b/$filename\n";
-      print "${fgWHITE}index 0000000..$sha1\n";
-      print "${fgWHITE}--- /dev/null\n";
-      print "${fgWHITE}+++ b/$filename\n";
-      
-      # Empty files have no more info
-      next FILE if($lines eq '');
-
-      # Count the number of new lines followed by some other character (including
-      # possibly another newline) this gives the number of non-file ending lines
-      # add one to count the line that ends the file
-      my $numLines = (() = $lines =~ m/\n./gm) + 1;
-      my $lineinfo = $numLines > 1 ? "1,$numLines" : "1";
-      
-      my $noNewLineAtEndOfFile = ($lines !~ m/\n$/);
-      
-      # \h is not supported by my version of perl it seems...
-      # need the following codes, but some of them don't work as I expected
-      # \x20 \x0b \xa0 \x1680 \x2000 \x2001 \x2002 \x2002 \x2003
-      # \x2004 \x2005 \x2006 \x2007 \x2008 \x2009 \x200a \x202f
-      # \x205f \x3000
-      my $hCharClass = "[ \t]";
-                       
-      # strip BOM
-      $lines =~ s/^\x{ef}\x{bb}\x{bf}//;
-      
-      # Highlight the last line if it contains only (horizontal) whitespace 
-      $lines =~ s/\n($hCharClass+\r?\n?)$/\n${GREYonRED}+$1/;
-      
-      # Keep highlighting all the whitespace-only lines above the ones already
-      # found.
-      while($lines =~ s/\n($hCharClass+\r?\n?\Q${GREYonRED}\E)/\n${GREYonRED}+$1/ > 0){}
-      
-      # Make lines be green, and start with a '+'
-      $lines =~ s/^(?!\Q${GREYonRED}\E)/${fgGREEN}+/mg;
-      
-      # Highlight trailing space (before newlines or end of file)
-      $lines =~ s/($hCharClass+)((?:\r?\n)|$)/${fbgRED}$1$2/g;
-
-      # Show carriage returns as ^M
-      $lines =~ s/\r\n/${REDonGREY}^M\n/g if($highlightCarraigeReturns);
-      
-      # Hunk info
-      print "${fgTEAL}@@ -0,0 +$lineinfo @\@${EC}\n" ;
-      
-      print "$lines";
-      
-      print "\n${EC}\\ No newline at end of file\n" if($noNewLineAtEndOfFile);
    }
 }
