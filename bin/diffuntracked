@@ -7,7 +7,7 @@ use strict;
 my $fgTEAL = "\e[0;36m";
 my $fgDARKGREY = "\e[1;30;40m";
 
-my @filenames = `git ls-files --others`;
+my @filenames = `git ls-files --others --exclude-standard`;
 
 recursivelyDiffFiles(@filenames);
 
