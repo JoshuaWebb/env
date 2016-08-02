@@ -62,3 +62,21 @@ gbe()
       return 1
    fi
 }
+
+# the remote tracking branch name
+grtb()
+{
+   # if you give an argument (any at all, don't colour the output)
+   local color
+   if [[ -z $1 ]]; then
+      color=${BRed}
+   fi
+
+   remote=$(git for-each-ref --format='%(upstream:short)' $(git symbolic-ref -q HEAD))
+   if [[ -z $remote ]]; then
+      echo -ne "${color}Not tracked\n"
+      return 1
+   fi
+
+   echo $remote
+}
