@@ -24,6 +24,11 @@ alias qqcls="clear"
 alias qqqcls="clear"
 alias qqqqcls="clear"
 
+settitle()
+{
+    echo -e "\033]0;$1\007"
+}
+
 # source the local aliases if there are any
 # These will take precedence over anything defined above
 [ -f "$HOME/.local_aliases" ] && source "$HOME/.local_aliases"
