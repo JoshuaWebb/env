@@ -63,6 +63,32 @@ gbe()
    fi
 }
 
+# git left-right
+glr()
+{
+   local left=$1
+   local right=$2
+
+   if [[ -z $right ]]; then
+      right=HEAD;
+   fi
+
+   if [[ -z $left ]]; then
+      echo "need at least one ref"
+      return 1
+   fi
+
+   local cright="\x1b[0;32m>"
+   local cleft="\x1b[1;36m<"
+
+   echo -e "$cleft $left\x1b[0m"
+   echo -e "$cright $right\x1b[0m"
+   echo -e "------------"
+
+   # colour the left and right arrows with sed, colour the rest with git `%C(auto)`
+   git log $left...$right --pretty="%m %C(auto)%h %s" | sed -r -e "s/^>/$cright\\x1b[0m/" -e "s/^</$cleft\\x1b[0m/"
+}
+
 # the remote tracking branch name
 grtb()
 {
