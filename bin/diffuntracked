@@ -15,17 +15,17 @@ sub recursivelyDiffFiles {
    my @filenames = @_;
    FILE: for my $filename (@filenames) {
       chomp $filename;
-      
+
       # chop the trailing slash if any because there's a difference between
       #     checking if a directory is ignored (no slash)
       # and checking if a directory contains a file that is (with slash)
       #
       # we only want to ignore a directory if it is explicitly ignored,
       # files in directories will be checked individually, this is so we don't
-      # skip whole directories just because they contain one thing that should 
+      # skip whole directories just because they contain one thing that should
       # be ignored.
       $filename =~ s!/$!!;
-      
+
       # We have a directory!
       if (-d $filename) {
 
@@ -34,21 +34,21 @@ sub recursivelyDiffFiles {
             print "${fgDARKGREY}ignored new (nested) directory '$filename/'\n";
             next FILE;
          }
-         
+
          recursivelyDiffFiles(glob("'$filename'/*"));
-         
+
          next FILE;
       }
-      
+
       # ignored file
       if (system("git", "check-ignore", "-q", "$filename") == 0) {
          print "${fgDARKGREY}ignored new (nested) file '$filename'\n";
          next FILE;
       }
 
-      print `git diff --color=always --no-index -- /dev/null "$filename"`;
-      
-      my $mimeEncoding = `file -b --mime-encoding $filename`;
+      print `git diff --color=always --no-index -- /dev/null "$filename" 2>&1`;
+
+      my $mimeEncoding = `file -b --mime-encoding "$filename"`;
       chomp $mimeEncoding;
       if ($mimeEncoding =~ '^binary\s*$') {
          print  "${fgTEAL}*** NEW BINARY FILE ***\n";
