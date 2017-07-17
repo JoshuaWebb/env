@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+
+allhistory()
+{
+    for i in "$HOME"/.history/*;
+    do
+        echo
+        echo $'\e[33;1m'$i$'\e[0m'
+        cat $i
+    done | less -FR
+}
+
+summarisehistory()
+{
+    cut -f1-2 "-d " ~/.history/* | sort | uniq -c |sort -n -r | less
+}
+
+loadhistory()
+{
+    if [ $# -eq 0 ]
+    then
+        echo -e "${BRed}Require a history file${Color_Off}";
+        ls "$HOME/.history"
+        return 1
+    fi
+
+    newHist=$1
+    if [[ "${newHist##$HOME/.history/}" == "$newHist" ]]; then
+        newHist="$HOME/.history/$newHist"
+    fi
+
+    currHist="$HISTFILE"
+    HISTFILE="$newHist"
+    history -c
+    history -r
+    HISTFILE="$currHist"
+}
+
+# http://askubuntu.com/a/80882
+# Multiple history files
+[[ -d ~/.history ]] || mkdir ~/.history
+HISTFILE=~/.history/history_$(date +%Y-%m-%d-%H-%M-%S)
+# close any old history file by zeroing HISTFILESIZE
+HISTFILESIZE=0
+# then set HISTFILESIZE to a large value
+HISTFILESIZE=4096
+HISTSIZE=4096
+
+# load history from most recent session
+latestHistory=$(ls --color=never ~/.history | sort -n | tail -1)
+if [[ ! -z $latestHistory ]]; then
+    loadhistory $latestHistory
+fi
