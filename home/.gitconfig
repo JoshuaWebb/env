@@ -1,16 +1,16 @@
 [core]
-   # todo: this should probably be configured when you install
-	editor = 'C:/Program Files (x86)/Notepad++/notepad++.exe' -multiInst -notabbar -nosession -noPlugin
-	whitespace = cr-at-eol
-	excludesfile = ~/.gitignore_global
+  # todo: this should probably be configured when you install
+  editor = 'C:/Program Files/Sublime Text 3/subl.exe' -n -w
+  whitespace = cr-at-eol
+  excludesfile = ~/.gitignore_global
 
 [color "status"]
-   added = green
-   changed = cyan bold
-   untracked = red bold
+  added = green
+  changed = cyan bold
+  untracked = red bold
 
 [push]
-	default = upstream
+  default = upstream
 
 [color "branch"]
-   remote = yellow
+  remote = yellow

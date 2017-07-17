@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 # re-source all the files again (for when you change an alias etc.)
 # NOTE: this won't remove aliases that no longer exist, but it will overwrite.
 alias rsbash=". ~/.bashrc"

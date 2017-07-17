@@ -1,108 +1,115 @@
+#!/usr/bin/env bash
+
 alias gs="git status"
 alias gdc="git diff --cached"
 alias gl="git log"
+alias gld="git log --decorate"
+alias glg="git log --oneline --graph --decorate"
 alias gsearch="git log --all -S"
 alias gfa="git fetch --all"
+alias gf="git fetch"
+alias gfo="git fetch origin"
 alias gtld="git rev-parse --show-toplevel"
-
-# delete local
-alias gdell="git branch -d"
 
 # delete origin (remote)
 gdelo()
-{   
-   git push origin :$@
+{
+    git push origin :$@
 }
 
 # Git stash show
-gss() 
-{ 
-   if [ $# -eq 0 ]
-   then
-      stashNum="0"
-   else
-      stashNum="$@"
-   fi
-   
-   git stash show -p stash@{"$stashNum"}; 
+gss()
+{
+    if [ $# -eq 0 ]
+    then
+        stashNum="0"
+    else
+        stashNum="$@"
+    fi
+
+    git stash show -p stash@{"$stashNum"};
 }
 
 # Git diff including untracked files
-gd() 
-{ 
-   # Group output for piping together
-   { 
-      # Do regular diff without paging so it can be paged together with the
-      # untracked files. colour explicitly so that the pager can colour it
-      # properly. Send stderr to stdout so that everything gets paged.
-      git --no-pager diff --color "$@" 2>&1;
-      
-      # Only diff untracked if there was no argument supplied... this isn't the
-      # best, ideally we'd support at least some of the arguments properly, but
-      # for now this is an acceptable compromise
-      if [ $# -eq 0 ]
-      then
-         diffuntracked;
-      fi
-   # -F quit automatically if it fits on one page
-   # -X don't clear terminal on quit
-   # -R process colours
-   } | less -FXR; 
+gd()
+{
+    # Group output for piping together
+    {
+        # Do regular diff without paging so it can be paged together with the
+        # untracked files. colour explicitly so that the pager can colour it
+        # properly. Send stderr to stdout so that everything gets paged.
+        git --no-pager diff --color "$@" 2>&1;
+
+        # Only diff untracked if there was no argument supplied... this isn't the
+        # best, ideally we'd support at least some of the arguments properly, but
+        # for now this is an acceptable compromise
+        if [ $# -eq 0 ]
+        then
+            diffuntracked;
+        fi
+    # -F quit automatically if it fits on one page
+    # -X don't clear terminal on quit
+    # -R process colours
+    } | less -FXR;
 }
 
 # git branch exists
 gbe()
 {
-   if git rev-parse --verify $@ &> /dev/null;
-   then
-      echo "'$@' was found."
-      return 0
-   else
-      echo "'$@' could not be found"
-      return 1
-   fi
+    if git rev-parse --verify $@ &> /dev/null;
+    then
+        echo "'$@' was found."
+        return 0
+    else
+        echo "'$@' could not be found"
+        return 1
+    fi
 }
 
 # git left-right
 glr()
 {
-   local left=$1
-   local right=$2
+    local left=$1
+    local right=$2
 
-   if [[ -z $right ]]; then
-      right=HEAD;
-   fi
+    if [[ -z $right ]]; then
+        right=HEAD;
+    fi
 
-   if [[ -z $left ]]; then
-      echo "need at least one ref"
-      return 1
-   fi
+    if [[ -z $left ]]; then
+       grtb=$(grtb 'nocol');
+       if [[ $? -eq 1 ]]; then
+           echo -e "need at least one ref \e[0;33;40m(no remote branch setup)\e[0m"
+           return 1
+       fi
+       left=$grtb;
+    fi
 
-   local cright="\x1b[0;32m>"
-   local cleft="\x1b[1;36m<"
+    local cright="\x1b[0;32m>"
+    local cleft="\x1b[1;36m<"
 
-   echo -e "$cleft $left\x1b[0m"
-   echo -e "$cright $right\x1b[0m"
-   echo -e "------------"
+    echo -e "$cleft $left\x1b[0m"
+    echo -e "$cright $right\x1b[0m"
+    echo -e "------------"
 
-   # colour the left and right arrows with sed, colour the rest with git `%C(auto)`
-   git log $left...$right --pretty="%m %C(auto)%h %s" | sed -r -e "s/^>/$cright\\x1b[0m/" -e "s/^</$cleft\\x1b[0m/"
+    # colour the left and right arrows with sed, colour the rest with git `%C(auto)`
+    git log $left...$right --pretty="%m %C(auto)%h %s" | sed -r -e "s/^>/$cright\\x1b[0m/" -e "s/^</$cleft\\x1b[0m/"
 }
 
 # the remote tracking branch name
 grtb()
 {
-   # if you give an argument (any at all, don't colour the output)
-   local color
-   if [[ -z $1 ]]; then
-      color=${BRed}
-   fi
+    # if you give an argument (any at all, don't colour the output)
+    local color
+    if [[ -z $1 ]]; then
+        color=${BRed}
+    fi
 
-   remote=$(git for-each-ref --format='%(upstream:short)' $(git symbolic-ref -q HEAD))
-   if [[ -z $remote ]]; then
-      echo -ne "${color}Not tracked\n"
-      return 1
-   fi
+    remote=$(git for-each-ref --format='%(upstream:short)' $(git symbolic-ref -q HEAD))
+    if [[ -z $remote ]]; then
+        echo -ne "${color}Not tracked\n"
+        return 1
+    fi
 
-   echo $remote
+    echo $remote
 }

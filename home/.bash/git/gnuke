@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 # Reset working directory to HEAD of current branch
 gnuke()
 {
@@ -6,20 +8,20 @@ gnuke()
       echo "Working directory is clean."
       return 0
    fi
-   
+
    gs;
    echo "";
-   
+
    echo -e "- \033[1;36mWARNING\033[0m - Changes in your working directory will be \033[1;31mIRREVERSIBLY DELETED\033[0m."
    echo "Nuke for realsies?"
-   
+
    ## todo: make this selection take the name of the command not the number
    selection=0
    while [ $selection -eq 0 ]
    do
       select yn in "yes" "status" "diff" "stash em" "no" ; do
          case $yn in
-            yes ) git reset --hard && git clean -df; selection=1; break;;
+            yes ) git reset --hard && git clean -f; selection=1; break;;
             status ) gs; break;;
             diff ) gd; break;;
             'stash em' ) git stash -u; selection=1; break;;

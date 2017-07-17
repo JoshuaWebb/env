@@ -14,5 +14,11 @@ done
 PATH="$HOME/bin:$PATH"
 export PATH
 
+# load history from most recent session
+latestHistory=$(ls --color=never ~/.history | sort -n | tail -1)
+if [[ ! -z $latestHistory ]]; then
+    loadhistory $latestHistory
+fi
+
 # set window title
 echo -ne "\033]2;bash\007"

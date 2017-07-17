@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 # modified version of: https://gist.github.com/wolever/6525437
 function gitbranchfast()
 {
@@ -6,7 +8,7 @@ function gitbranchfast()
    local repo="${_GITBRANCH_LAST_REPO-}"
    local gitdir=""
    [[ ! -z "$repo" ]] && gitdir="$repo/.git"
-   
+
    # If we don't have a last seen git repo, or we are in a different directory
    if [[ -z "$repo" || "$PWD" != "$repo"* || ! -e "$gitdir" ]]; then
        local cur="$PWD"
@@ -32,13 +34,13 @@ function gitbranchfast()
    read head < "$gitdir/HEAD"
    case "$head" in
        ref:*)
-           branch="${head##*/}"
+           branch="${head##refs/heads}"
            ;;
        "")
            branch=""
            ;;
        *)
-           branch="d:${head:0:7}"
+           branch="(${head:0:7}...)"
            ;;
    esac
    if [[ -z "$branch" ]]; then

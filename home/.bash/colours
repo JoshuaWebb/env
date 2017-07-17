@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 # Reset                                         My Colour Scheme
 #                       Default Colour   |     R,   G,   B      HEX
 Color_Off="\e[0m"       # Text Reset     |     -    -    -       -
@@ -10,7 +12,7 @@ Blue="\e[0;34m"         # Blue           |     1,  91, 173    #015BAD
 Purple="\e[0;35m"       # Purple         |   151,  68, 183    #9744B7
 Teal="\e[0;36m"         # Cyan           |    55, 162, 130    #37A282
 Grey="\e[0;37m"         # White          |   143, 143, 143    #8F8F8F
-# "Bold" / "Bright"                          |  
+# "Bold" / "Bright"                      |
 DarkGrey="\e[1;30m"     # Black          |    85,  85,  85    #555555
 BRed="\e[1;31m"         # Red            |   224,  24,  30    #E0181E
 BGreen="\e[1;32m"       # Green          |   171, 227,  40    #ABE328

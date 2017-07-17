@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 # Customize ls colours
 # di = directory
 # fi = file
