@@ -24,16 +24,29 @@ loadhistory()
         return 1
     fi
 
-    newHist=$1
+    local newHist="$1"
     if [[ "${newHist##$HOME/.history/}" == "$newHist" ]]; then
         newHist="$HOME/.history/$newHist"
     fi
 
-    currHist="$HISTFILE"
+    local currHist="$HISTFILE"
     HISTFILE="$newHist"
     history -c
     history -r
     HISTFILE="$currHist"
+}
+
+continuehistory()
+{
+    newHist="$1"
+    HISTFILE="$newHist"
+    history -c
+    history -r
+}
+
+grephistory()
+{
+    grep -r "$1" "$HOME/.history" | less -FXR
 }
 
 # http://askubuntu.com/a/80882
