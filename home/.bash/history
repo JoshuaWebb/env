@@ -2,7 +2,7 @@
 
 allhistory()
 {
-    for i in "$HOME"/.history/*;
+    for i in `ls --color=never -t "$HOME"/.history`;
     do
         echo
         echo $'\e[33;1m'$i$'\e[0m'
@@ -19,7 +19,7 @@ loadhistory()
 {
     if [ $# -eq 0 ]
     then
-        echo -e "${BRed}Require a history file${Color_Off}";
+        echo -e "${BRed}Choose a history file${Color_Off}";
         ls "$HOME/.history"
         return 1
     fi
@@ -46,7 +46,7 @@ continuehistory()
 
 grephistory()
 {
-    grep -r "$1" "$HOME/.history" | less -FXR
+    grep --color="always" -r "$1" "$HOME/.history" | less -FXR
 }
 
 # http://askubuntu.com/a/80882
