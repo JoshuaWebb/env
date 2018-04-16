@@ -36,6 +36,56 @@ settitle()
     echo -e "\033]0;$1\007"
 }
 
+vs()
+{
+    # default to current directory
+    path="${1:-.}"
+    verbose=$2
+
+    # Ghetto path expansion (chop up alias, if it exists)
+    if [[ ! -z "$1" && ! -d "$path" ]]; then
+        aliasResult=$(alias "$1" 2>/dev/null)
+        if [[ $? -eq 0 ]]; then
+            aliasedPath=${aliasResult#*cd }
+            aliasedPath=${aliasedPath%\'}
+
+            # overwrite the argument if the choppy resulted in a valid directory
+            # otherwise, try use the original argument as a path
+            if [[ -d "$aliasedPath" ]]; then
+                path="$aliasedPath"
+            fi
+        fi
+    fi
+
+    if [[ ! -z "$1" && ! ( -d "$path" || -f "$path" ) ]]; then
+        echo "$path is not a valid path"
+        return 1
+    fi
+
+    # find solution files in current directory
+    IFS=$'\n' solutions=($(find "$path" -maxdepth 1 -type f -name '*.sln'))
+
+    # tries two layers deep (<path>/*.sln and <path>/*/*.sln)
+    # this is for directories that embed everything in a "src" folder or similar.
+    if [ ${#solutions[@]} -eq 0 ]; then
+        IFS=$'\n' solutions=($(find "$path" -maxdepth 2 -type f -name '*.sln'))
+    fi
+
+    if [ ${#solutions[@]} -ne 1 ]; then
+        echo "Can't find unique '.sln'";
+        for sln in "${solutions[@]}"
+        do
+            echo "\"$sln\""
+        done
+        return 1
+    else
+        echo "starting ${solutions[0]}"
+        if Test-VisualStudioSolution.ps1 -Path ${solutions[0]} $verbose; then
+            start ${solutions[0]}
+        fi
+    fi
+}
+
 # source the local aliases if there are any
 # These will take precedence over anything defined above
 [ -f "$HOME/.local_aliases" ] && source "$HOME/.local_aliases"
