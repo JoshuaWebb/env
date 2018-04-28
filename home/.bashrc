@@ -5,6 +5,7 @@ bashd=~/.bash
 . "$bashd/ps1/prompt"
 . "$bashd/aliases"
 . "$bashd/environment"
+. "$bashd/history"
 
 # source all the functions and aliases in the git folder
 for f in "$bashd/git/"*; do
