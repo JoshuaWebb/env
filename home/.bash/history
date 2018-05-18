@@ -46,7 +46,7 @@ continuehistory()
 
 grephistory()
 {
-    grep --color="always" -r "$1" "$HOME/.history" | less -FXR
+    grep --color="always" -r $@ "$HOME/.history" | tac | less -FXR
 }
 
 # http://askubuntu.com/a/80882
