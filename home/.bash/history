@@ -6,7 +6,7 @@ allhistory()
     do
         echo
         echo $'\e[33;1m'$i$'\e[0m'
-        cat $i
+        cat "$HOME/.history/$i"
     done | less -FR
 }
 
