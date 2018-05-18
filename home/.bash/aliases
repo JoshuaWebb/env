@@ -31,9 +31,16 @@ alias qqcls="clear"
 alias qqqcls="clear"
 alias qqqqcls="clear"
 
+alias listvars="showvars"
+
 settitle()
 {
     echo -e "\033]0;$1\007"
+}
+
+showvars()
+{
+    ( set -o posix ; set ) | less
 }
 
 vs()
