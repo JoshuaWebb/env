@@ -11,6 +11,10 @@ alias gf="git fetch"
 alias gfo="git fetch origin"
 alias gtld="git rev-parse --show-toplevel"
 
+# TODO: should this also include `diffuntracked` ?
+alias gdr="git diff --word-diff-regex='.'"
+alias gdcr="gdc --word-diff-regex='.'"
+
 # delete origin (remote)
 gdelo()
 {
