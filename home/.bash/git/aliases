@@ -51,10 +51,12 @@ gd()
         then
             diffuntracked;
         fi
+    # -x1,5 set tabstops at 1, 5, 9 etc (the first place is for a the status column)
+    #     three way diffs look a bit silly
     # -F quit automatically if it fits on one page
     # -X don't clear terminal on quit
     # -R process colours
-    } | less -FXR;
+    } | less -x1,5 -FXR;
 }
 
 # git branch exists
