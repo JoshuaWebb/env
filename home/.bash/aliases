@@ -45,13 +45,29 @@ showvars()
 
 vs()
 {
+    local args=()
+    local version
+    local verbose
+
+    while [ "$#" -gt 0 ]; do
+      case "$1" in
+        -v15) version="15"; shift 1;;
+        -v17) version="17"; shift 1;;
+
+        --verbose) verbose="-Verbose"; shift 1;;
+
+        -*) echo "unknown option: $1" >&2; return 1;;
+        *) args+=("$1"); shift 1;;
+      esac
+    done
+
+    local originalPath="${args[0]}"
     # default to current directory
-    path="${1:-.}"
-    verbose=$2
+    local path="${args[0]:-.}"
 
     # Ghetto path expansion (chop up alias, if it exists)
-    if [[ ! -z "$1" && ! -d "$path" ]]; then
-        aliasResult=$(alias "$1" 2>/dev/null)
+    if [[ ! -z "$originalPath" && ! -d "$path" ]]; then
+        aliasResult=$(alias "$originalPath" 2>/dev/null)
         if [[ $? -eq 0 ]]; then
             aliasedPath=${aliasResult#*cd }
             aliasedPath=${aliasedPath%\'}
@@ -64,8 +80,8 @@ vs()
         fi
     fi
 
-    if [[ ! -z "$1" && ! ( -d "$path" || -f "$path" ) ]]; then
-        echo "$path is not a valid path"
+    if [[ ! -z "$originalPath" && ! ( -d "$path" || -f "$path" ) ]]; then
+        echo -e "${BRed}$path is not a valid path${Color_Off}"
         return 1
     fi
 
@@ -79,18 +95,33 @@ vs()
     fi
 
     if [ ${#solutions[@]} -ne 1 ]; then
-        echo "Can't find unique '.sln'";
+        echo -e "${BRed}Can't find unique '.sln'${Color_Off}";
         for sln in "${solutions[@]}"
         do
             echo "\"$sln\""
         done
         return 1
     else
-        echo "starting ${solutions[0]}"
+        [[ "$verbose" != "" ]] && echo ".sln found: ${solutions[0]}"
         if Test-VisualStudioSolution.ps1 -Path ${solutions[0]} $verbose; then
+          echo "Starting solution ${solutions[0]}"
+          if [[ "$version" == "15" ]]; then
+            [[ "$verbose" != "" ]] && echo start '""' "C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\IDE\devenv.exe" "${solutions[0]}"
+            start "" "C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\IDE\devenv.exe" "${solutions[0]}"
+          elif [[ "$version" == "17" ]]; then
+            [[ "$verbose" != "" ]] && echo start '""' "C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\Common7\IDE\devenv.exe" "${solutions[0]}"
+            start "" "C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\Common7\IDE\devenv.exe" "${solutions[0]}"
+          else
+            [[ "$verbose" != "" ]] && echo start ${solutions[0]}
             start ${solutions[0]}
+          fi
+        else
+          echo -e "${BRed}Refused to start suspicious looking .sln file ${Color_Off}'${solutions[0]}'"
+          return 1
         fi
     fi
+
+    return 0
 }
 
 # source the local aliases if there are any
