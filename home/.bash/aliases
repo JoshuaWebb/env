@@ -51,8 +51,8 @@ vs()
 
     while [ "$#" -gt 0 ]; do
       case "$1" in
-        -v15) version="15"; shift 1;;
-        -v17) version="17"; shift 1;;
+        -2015) version="15"; shift 1;;
+        -2017) version="17"; shift 1;;
 
         --verbose) verbose="-Verbose"; shift 1;;
 
@@ -123,6 +123,41 @@ vs()
 
     return 0
 }
+
+_vs_complete()
+{
+  local cur=${COMP_WORDS[COMP_CWORD]}
+
+  # we need to do "--" explicitly due to the hack below
+  if [[ "$cur" == --* ]]; then
+    local ddargs="--verbose"
+    COMPREPLY=( $(compgen -W "$ddargs" -- $cur) )
+  elif [[ "$cur" == -* ]]; then
+    local versions=("-2015" "-2017" "--verbose")
+
+    # Hack to get fuzzy matching
+    #   Chop off the dash, which means we can grep from inside the word
+    #   instead of requiring the start of the word. This is probably
+    #   unexpected/non-standard but it's way more useful to me to be
+    #   able to type
+    #
+    #   > vs -7<tab>
+    #
+    #   and have that autocomplete to -2017 when there are no other
+    #   results that have a 7 in them.
+    local search="${cur:1}"
+    local matches=$(IFS=$'\n'; echo "${versions[*]}" | \grep -- "$search")
+
+    # Note: We don't include the current value to `compgen`
+    #       because we're doing the (fuzzy) matching via `grep` above
+    COMPREPLY=( $(compgen -W "$matches") )
+  else
+    # TODO: include the magic `cd` aliases?
+    # TODO: `-o plusdirs` includes '.git' and '.vs' folders...
+    COMPREPLY=( $(compgen -o plusdirs -f -X '!*.sln' -- "$cur") )
+  fi
+}
+complete -F _vs_complete vs
 
 # source the local aliases if there are any
 # These will take precedence over anything defined above
