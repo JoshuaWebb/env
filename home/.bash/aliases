@@ -159,6 +159,11 @@ _vs_complete()
 }
 complete -F _vs_complete vs
 
+edithosts()
+{
+    powershell -Command "Start-Process 'notepad.exe' -ArgumentList 'C:/Windows/System32/drivers/etc/hosts' -Verb runAs"
+}
+
 # source the local aliases if there are any
 # These will take precedence over anything defined above
 [ -f "$HOME/.local_aliases" ] && source "$HOME/.local_aliases"
