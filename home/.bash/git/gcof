@@ -86,3 +86,6 @@ gcof()
    echo "" &&
    git reset --hard $remote/$branch
 }
+
+# enable autocomplete
+__git_complete gcof _git_checkout
