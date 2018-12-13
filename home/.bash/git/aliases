@@ -125,6 +125,35 @@ grtb()
     echo $remote
 }
 
+# heh. grr
+grr()
+{
+    local rtb
+    rtb=$(grtb)
+    if [[ $? -ne 0 ]]; then
+        echo -e "${rtb}"
+        return 1
+    fi
+
+    gs
+    local prompt="Reset to ${Yellow}${rtb}${Color_Off}?: "
+    local RESPONSE=""
+    while [[ "$RESPONSE" = "" ]];
+    do
+       echo -ne "$prompt" &&
+       read RESPONSE
+    done
+
+    echo "" &&
+    if yslashn "$RESPONSE"; then
+       echo "BLAST IT!"
+       git reset --hard ${rtb}
+    else
+       echo "Nevermind";
+       return 1
+    fi
+}
+
 _getbranchkey()
 {
     local branch=$(git rev-parse --abbrev-ref HEAD)
