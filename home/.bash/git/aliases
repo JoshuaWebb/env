@@ -11,6 +11,10 @@ alias gf="git fetch"
 alias gfo="git fetch origin"
 alias gtld="git rev-parse --show-toplevel"
 
+# TODO: should this also include `diffuntracked` ?
+alias gdr="git diff --word-diff-regex='.'"
+alias gdcr="gdc --word-diff-regex='.'"
+
 # delete origin (remote)
 gdelo()
 {
@@ -47,10 +51,12 @@ gd()
         then
             diffuntracked;
         fi
+    # -x1,5 set tabstops at 1, 5, 9 etc (the first place is for a the status column)
+    #     three way diffs look a bit silly
     # -F quit automatically if it fits on one page
     # -X don't clear terminal on quit
     # -R process colours
-    } | less -FXR;
+    } | less -x1,5 -FXR;
 }
 
 # git branch exists
@@ -77,12 +83,17 @@ glr()
     fi
 
     if [[ -z $left ]]; then
-       grtb=$(grtb 'nocol');
-       if [[ $? -eq 1 ]]; then
-           echo -e "need at least one ref \e[0;33;40m(no remote branch setup)\e[0m"
-           return 1
-       fi
-       left=$grtb;
+        grtb=$(grtb 'nocol');
+        if [[ $? -eq 1 ]]; then
+            echo -e "\e[0;33;40mno remote branch setup, auto-detecting ancestor\e[0m"
+            left=$(gbase);
+            if [[ $? -eq 1 ]]; then
+                echo -e "\e[1;31;40mcould not auto-detect ancestor\e[0m"
+                return 1
+            fi
+        else
+            left=$grtb;
+        fi
     fi
 
     local cright="\x1b[0;32m>"
@@ -112,4 +123,95 @@ grtb()
     fi
 
     echo $remote
+}
+
+# heh. grr
+grr()
+{
+    local rtb
+    rtb=$(grtb)
+    if [[ $? -ne 0 ]]; then
+        echo -e "${rtb}"
+        return 1
+    fi
+
+    gs
+    local prompt="Reset to ${Yellow}${rtb}${Color_Off}?: "
+    local RESPONSE=""
+    while [[ "$RESPONSE" = "" ]];
+    do
+       echo -ne "$prompt" &&
+       read RESPONSE
+    done
+
+    echo "" &&
+    if yslashn "$RESPONSE"; then
+       echo "BLAST IT!"
+       git reset --hard ${rtb}
+    else
+       echo "Nevermind";
+       return 1
+    fi
+}
+
+_getbranchkey()
+{
+    local branch=$(git rev-parse --abbrev-ref HEAD)
+
+    # base32 encode the repo folder and branch name (replace padding chars with 'e')
+    # separate paths and branches with ">]", branches can't contain "]" and
+    # (windows) paths can't contain ">", so this delimiter should ensure that
+    # branches from different repos won't accidentally collide.
+    local repo=$(pwd)
+    local encoded=$(echo "${repo}>]${branch}" | base32 -w0 | sed 's/=/e/g')
+    echo "ANCESTOR_${encoded}"
+}
+
+setancestor()
+{
+    local value="$1"
+    local key=$(_getbranchkey)
+
+    # yaaay global variables... uhhh, I'm sorry...
+    declare -g "$key"=${value}
+}
+
+gbase()
+{
+    local invalidate_cache="$1"
+
+    local key=$(_getbranchkey)
+    if [[ -n "${!key}" && -z $invalidate_cache ]]; then
+        echo ${!key}
+        return 0
+    fi
+
+    # Get the branch name of the current commit
+    # (as it will appear in git show-branch)
+    local branch=$(git rev-parse --abbrev-ref HEAD)
+
+    # based on https://gist.github.com/joechrysler/6073741
+    # find the '*' in the headers and get the column number before it
+    local column_before_branch=$(( $(git show-branch | grep '^[^\[]*\*' | head -1 | cut -d* -f1 | wc -c) - 1 ))
+    # find the row number of all dashes which indicates the start of the swim lanes
+    local swimming_lane_start_row=$(( $(git show-branch | grep -n "^-*$" | cut -d: -f1) + 1 ))
+
+    local ancestor=$(
+        git show-branch |
+            # skip the headers
+            tail -n +$swimming_lane_start_row |
+            # ignore commits on the branch we're looking at
+            grep -v "^[^\[]*\[$branch" |
+            # find the lines that have something in our branch's column
+            grep "^.\{$column_before_branch\}[^ ]" |
+            # take the first one
+            head -n1 |
+            # grab the ref name
+            # branch names can't have spaces in them (but they can have other square brackets)
+            # this may have squiggles and hats delineating distance from the main dude
+            sed 's/.*\[\([^ ]*\)\].*/\1/'
+    )
+
+    setancestor $ancestor
+    echo $ancestor
 }
