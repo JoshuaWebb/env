@@ -15,6 +15,27 @@ alias gtld="git rev-parse --show-toplevel"
 alias gdr="git diff --word-diff-regex='.'"
 alias gdcr="gdc --word-diff-regex='.'"
 
+# Git branch to tag
+# convert a branch to a lightweight tag
+gbtt()
+{
+    git tag $1 refs/heads/$1
+    echo -e "Created tag ${Yellow}$1${Color_Off}"
+    git branch -D $1
+}
+
+# Wrap __git_heads with the appropriate arguments
+# to just get local branches (see `_git_branch`)
+_git_complete_local_branches()
+{
+    local cur=${COMP_WORDS[COMP_CWORD]}
+    local branches="$(__git_heads "" "$cur")"
+
+    local IFS=$'\n'
+    COMPREPLY=($branches)
+}
+complete -F _git_complete_local_branches gbtt
+
 # delete origin (remote)
 gdelo()
 {
